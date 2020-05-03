@@ -114,9 +114,7 @@ internal class Span {
         var mutableOffset = offset
 
         // Check if no furigana
-        if (furigana == null) {
-            return
-        }
+        assert (furigana == null);
 
         // Split normal list
         for (cur in normal) {
