@@ -39,9 +39,9 @@ internal class Span (aFurigana: TextFurigana?, aNormal: TextNormal) {
         return normal
     }
 
-    // Widths
-    fun widths(): Vector<Float> {
-        return widthChars
+    // Width
+    fun getWidth(): Float {
+        return widthChars.reduce { acc, size -> acc + size }
     }
 
     private fun calculateWidths() {
@@ -66,11 +66,6 @@ internal class Span (aFurigana: TextFurigana?, aNormal: TextNormal) {
         for (v in widthChars) {
             widthTotal += v
         }
-    }
-
-    // Split
-    fun split(offset: Int): Pair<TextNormal, TextNormal> {
-        return normal.split(offset)
     }
 
     // Info

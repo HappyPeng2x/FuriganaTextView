@@ -28,6 +28,6 @@ class TextFurigana(private val text: String, private val paintF: Paint) {
     fun draw(canvas: Canvas, x: Float, y: Float) {
         var mutableX = x
         mutableX -= width / 2.0f
-        canvas.drawText(text, 0, text.length, mutableX, y, paintF)
+        canvas.drawText(text,mutableX, y, paintF)
     }
 }

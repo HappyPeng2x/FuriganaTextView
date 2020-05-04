@@ -15,9 +15,22 @@ import androidx.appcompat.widget.AppCompatTextView
 import se.fekete.furiganatextview.R
 import java.util.*
 
+private fun enumerateChars(aExpression: String): List<String> {
+    var pos = 0
+    val ret = mutableListOf<String>()
+
+    while (pos < aExpression.length) {
+        val new_pos = aExpression.offsetByCodePoints(pos, 1)
+        ret.add(aExpression.substring(pos, new_pos))
+        pos = new_pos
+    }
+
+    return ret
+}
+
 class FuriganaTextView : AppCompatTextView {
     companion object Expressions {
-        val spanRegex = "([^\\{\\}\\n]+)|(\\{([^\\{\\}\\n;]*);([^\\{\\}\\n;]*)\\})|(\\n)".toRegex()
+        val spanRegex = "([^\\{\\}\\n]+)|\\{([^\\{\\}\\n;]*);([^\\{\\}\\n;]*)\\}|(\\n)".toRegex()
     }
 
     // Paints
@@ -117,14 +130,16 @@ class FuriganaTextView : AppCompatTextView {
 
         // Spannify text
         for (span in spanRegex.findAll(text)) {
-            val (normalWithoutFurigana, _, normal, furigana, newLine) =
+            val (normalWithoutFurigana, normal, furigana, newLine) =
                     span.destructured
 
             if (furigana.isEmpty()) {
                 if (!newLine.isEmpty()) {
                     spans.add(Span("", "\n", textPaintNormal, textPaintFurigana))
                 } else {
-                    spans.add(Span("", normalWithoutFurigana, textPaintNormal, textPaintFurigana))
+                    for (subSpan in enumerateChars(normalWithoutFurigana)) {
+                        spans.add(Span("", subSpan, textPaintNormal, textPaintFurigana))
+                    }
                 }
             } else {
                 spans.add(Span(furigana, normal, textPaintNormal, textPaintFurigana))
@@ -191,8 +206,7 @@ class FuriganaTextView : AppCompatTextView {
                 lineF.add(span.furigana(this.lineMax))
 
                 // Widths update
-                for (width in span.widths())
-                    this.lineMax += width
+                this.lineMax += span.getWidth()
             }
 
             // Commit both lines
@@ -200,7 +214,6 @@ class FuriganaTextView : AppCompatTextView {
             furiganaLines.add(lineF)
 
         } else {
-
             // Lines
             var lineX = 0.0f
             var lineN = LineNormal(textPaintNormal)
@@ -214,57 +227,31 @@ class FuriganaTextView : AppCompatTextView {
             while (span != null) {
                 // Start offset
                 val lineS = lineX
+                val spanWidth = span.getWidth()
 
-                // Calculate possible line size
-                val widths = span.widths()
-                var i = 0
-                while (i < widths.size) {
-                    if (lineX + widths[i] <= lineMax) {
-                        lineX += widths[i]
-                    } else {
-                        break
-                    }
-                    i++
-                }
+                // No span longer than lineMax
+                assert(spanWidth <= lineMax)
 
-                // Add span to line
-                if ((i >= 0 && i < widths.size) || span.isEndline()) {
+                if (lineX + spanWidth > lineMax || span.isEndline()) {
+                    // Add
+                    normalLines.add(lineN)
+                    furiganaLines.add(lineF)
 
-                    // Span does not fit entirely
+                    // Reset
+                    lineN = LineNormal(textPaintNormal)
+                    lineF = LineFurigana(this.lineMax, textPaintFurigana)
+                    lineX = 0.0f
+
+                    // Continue to add span on next line, or move to the next span
                     if (!span.isEndline()) {
-                        if (i > 0) {
-                            // Split half that fits
-                            val (normalA, normalB) = span.split(i)
-                            lineN.add(normalA)
-                            span = Span(normalB)
-                        }
-                    } else {
-                        lineN.add(span.normal())
-                        span = Span(null, "", textPaintFurigana, textPaintNormal)
-                    }
-
-                    // Add new line with current spans
-                    if (lineN.size() != 0) {
-                        // Add
-                        this.lineMax = if (this.lineMax > lineX) this.lineMax else lineX
-                        normalLines.add(lineN)
-                        furiganaLines.add(lineF)
-
-                        // Reset
-                        lineN = LineNormal(textPaintNormal)
-                        lineF = LineFurigana(this.lineMax, textPaintFurigana)
-                        lineX = 0.0f
-
-                        // Next span
                         continue
                     }
-
                 } else {
-
                     // Span fits entirely
                     lineN.add(span.normal())
                     lineF.add(span.furigana(lineS))
 
+                    lineX += spanWidth
                 }
 
                 // Next span
@@ -279,7 +266,6 @@ class FuriganaTextView : AppCompatTextView {
             // Last span
             if (lineN.size() != 0) {
                 // Add
-                this.lineMax = if (this.lineMax > lineX) this.lineMax else lineX
                 normalLines.add(lineN)
                 furiganaLines.add(lineF)
             }
