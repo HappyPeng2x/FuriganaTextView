@@ -92,13 +92,11 @@ class FuriganaTextView : TextView {
             textToDisplay = replaceRuby(text)
         }
 
-        setText(paint, textToDisplay, 0, 0)
+        setText(paint, textToDisplay)
     }
 
-    private fun setText(tp: TextPaint, text: String, markS: Int, markE: Int) {
+    private fun setText(tp: TextPaint, text: String) {
         var mutableText = text
-        var mutableMarkS = markS
-        var mutableMarkE = markE
 
         // Text
         textPaintNormal = TextPaint(tp)
@@ -123,12 +121,10 @@ class FuriganaTextView : TextView {
                 // Prefix string
                 if (idx > 0) {
                     // Spans
-                    spans.add(Span("", mutableText.substring(0, idx), mutableMarkS, mutableMarkE, textPaintNormal, textPaintFurigana))
+                    spans.add(Span("", mutableText.substring(0, idx), textPaintNormal, textPaintFurigana))
 
                     // Remove text
                     mutableText = mutableText.substring(idx)
-                    mutableMarkS -= idx
-                    mutableMarkE -= idx
                 }
 
                 // End bracket
@@ -144,16 +140,13 @@ class FuriganaTextView : TextView {
 
                 // Spans
                 val split = mutableText.substring(1, idx).split(";".toRegex()).dropLastWhile { it.isEmpty() }.toTypedArray()
-                spans.add(Span(if (split.size > 1) split[1] else "", split[0], mutableMarkS, mutableMarkE, textPaintNormal, textPaintFurigana))
+                spans.add(Span(if (split.size > 1) split[1] else "", split[0], textPaintNormal, textPaintFurigana))
 
                 // Remove text
                 mutableText = mutableText.substring(idx + 1)
-                mutableMarkS -= split[0].length
-                mutableMarkE -= split[0].length
-
             } else {
                 // Single span
-                spans.add(Span("", mutableText, mutableMarkS, mutableMarkE, textPaintNormal, textPaintFurigana))
+                spans.add(Span("", mutableText, textPaintNormal, textPaintFurigana))
                 mutableText = ""
             }
         }
@@ -260,9 +253,7 @@ class FuriganaTextView : TextView {
                     // Span does not fit entirely
                     if (i > 0) {
                         // Split half that fits
-                        val normalA = Vector<TextNormal>()
-                        val normalB = Vector<TextNormal>()
-                        span.split(i, normalA, normalB)
+                        val (normalA, normalB) = span.split(i)
                         lineN.add(normalA)
                         span = Span(normalB)
                     }

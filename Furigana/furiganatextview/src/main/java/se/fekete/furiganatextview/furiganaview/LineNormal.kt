@@ -13,8 +13,8 @@ class LineNormal(val paint: Paint) {
         return text.size
     }
 
-    fun add(text: Vector<TextNormal>) {
-        this.text.addAll(text)
+    fun add(text: TextNormal) {
+        this.text.add(text)
     }
 
     // Draw

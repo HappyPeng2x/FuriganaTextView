@@ -28,8 +28,20 @@ class TextNormal(private val text: String, private val paint: Paint) {
     }
 
     // Split
-    fun split(offset: Int): Array<TextNormal> {
-        return arrayOf(TextNormal(text.substring(0, offset), paint), TextNormal(text.substring(offset), paint))
+    fun split(offset: Int): Pair<TextNormal, TextNormal> {
+        val textA = if (offset <= 0) { "" } else {
+            if (offset >= text.length) { text } else {
+                text.substring(0, offset)
+            }
+        }
+
+        val textB = if (offset <= 0) { text } else {
+            if (offset >= text.length) { "" } else {
+                text.substring(offset)
+            }
+        }
+
+        return Pair(TextNormal(textA, paint), TextNormal(textB, paint))
     }
 
     // Draw
