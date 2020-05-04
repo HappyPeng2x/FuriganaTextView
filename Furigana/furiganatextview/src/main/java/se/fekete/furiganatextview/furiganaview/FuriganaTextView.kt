@@ -16,6 +16,9 @@ import se.fekete.furiganatextview.R
 import java.util.*
 
 class FuriganaTextView : AppCompatTextView {
+    companion object Expressions {
+        val spanRegex = "([^\\{\\}\\n]+)|(\\{([^\\{\\}\\n;]*);([^\\{\\}\\n;]*)\\})|(\\n)".toRegex()
+    }
 
     // Paints
     private var textPaintFurigana = TextPaint()
@@ -96,8 +99,6 @@ class FuriganaTextView : AppCompatTextView {
     }
 
     private fun setText(tp: TextPaint, text: String) {
-        var mutableText = text
-
         // Text
         textPaintNormal = TextPaint(tp)
         textPaintFurigana = TextPaint(tp)
@@ -115,39 +116,18 @@ class FuriganaTextView : AppCompatTextView {
         lineSize = textPaintFurigana.fontSpacing + Math.max(textPaintNormal.fontSpacing, 0f)
 
         // Spannify text
-        while (mutableText.isNotEmpty()) {
-            var idx = mutableText.indexOf('{')
-            if (idx >= 0) {
-                // Prefix string
-                if (idx > 0) {
-                    // Spans
-                    spans.add(Span("", mutableText.substring(0, idx), textPaintNormal, textPaintFurigana))
+        for (span in spanRegex.findAll(text)) {
+            val (normalWithoutFurigana, _, normal, furigana, newLine) =
+                    span.destructured
 
-                    // Remove text
-                    mutableText = mutableText.substring(idx)
+            if (furigana.isEmpty()) {
+                if (!newLine.isEmpty()) {
+                    spans.add(Span("", "\n", textPaintNormal, textPaintFurigana))
+                } else {
+                    spans.add(Span("", normalWithoutFurigana, textPaintNormal, textPaintFurigana))
                 }
-
-                // End bracket
-                idx = mutableText.indexOf('}')
-                if (idx < 1) {
-                    // Error
-                    break
-                } else if (idx == 1) {
-                    // Empty bracket
-                    mutableText = mutableText.substring(2)
-                    continue
-                }
-
-                // Spans
-                val split = mutableText.substring(1, idx).split(";".toRegex()).dropLastWhile { it.isEmpty() }.toTypedArray()
-                spans.add(Span(if (split.size > 1) split[1] else "", split[0], textPaintNormal, textPaintFurigana))
-
-                // Remove text
-                mutableText = mutableText.substring(idx + 1)
             } else {
-                // Single span
-                spans.add(Span("", mutableText, textPaintNormal, textPaintFurigana))
-                mutableText = ""
+                spans.add(Span(furigana, normal, textPaintNormal, textPaintFurigana))
             }
         }
 
