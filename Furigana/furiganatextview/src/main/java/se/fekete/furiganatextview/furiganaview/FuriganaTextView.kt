@@ -228,14 +228,19 @@ class FuriganaTextView : AppCompatTextView {
                 }
 
                 // Add span to line
-                if (i >= 0 && i < widths.size) {
+                if ((i >= 0 && i < widths.size) || span.isEndline()) {
 
                     // Span does not fit entirely
-                    if (i > 0) {
-                        // Split half that fits
-                        val (normalA, normalB) = span.split(i)
-                        lineN.add(normalA)
-                        span = Span(normalB)
+                    if (!span.isEndline()) {
+                        if (i > 0) {
+                            // Split half that fits
+                            val (normalA, normalB) = span.split(i)
+                            lineN.add(normalA)
+                            span = Span(normalB)
+                        }
+                    } else {
+                        lineN.add(span.normal())
+                        span = Span(null, "", textPaintFurigana, textPaintNormal)
                     }
 
                     // Add new line with current spans

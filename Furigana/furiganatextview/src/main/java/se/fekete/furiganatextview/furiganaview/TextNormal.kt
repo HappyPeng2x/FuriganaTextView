@@ -22,6 +22,10 @@ class TextNormal(private val text: String, private val paint: Paint) {
         return text.length
     }
 
+    fun isEndline(): Boolean {
+        return text == "\n"
+    }
+
     // Widths
     fun charsWidth(): FloatArray {
         return charsWidth

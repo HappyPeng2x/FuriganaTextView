@@ -72,4 +72,9 @@ internal class Span (aFurigana: TextFurigana?, aNormal: TextNormal) {
     fun split(offset: Int): Pair<TextNormal, TextNormal> {
         return normal.split(offset)
     }
+
+    // Info
+    fun isEndline(): Boolean {
+        return normal.isEndline()
+    }
 }
