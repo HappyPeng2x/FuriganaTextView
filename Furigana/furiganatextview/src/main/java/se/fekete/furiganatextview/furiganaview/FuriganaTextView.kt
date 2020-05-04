@@ -30,7 +30,7 @@ private fun enumerateChars(aExpression: String): List<String> {
 
 class FuriganaTextView : AppCompatTextView {
     companion object Expressions {
-        val spanRegex = "([^\\{\\}\\n]+)|\\{([^\\{\\}\\n;]*);([^\\{\\}\\n;]*)\\}|(\\n)".toRegex()
+        val spanRegex = "([^\\{\\}\\[\\]\\n]+)|\\{([^\\{\\}\\[\\]\\n;]*);([^\\{\\}\\[\\]\\n;]*)\\}|\\[([^\\{\\}\\[\\]\\n]*)\\]|(\\n)".toRegex()
     }
 
     // Paints
@@ -130,15 +130,23 @@ class FuriganaTextView : AppCompatTextView {
 
         // Spannify text
         for (span in spanRegex.findAll(text)) {
-            val (normalWithoutFurigana, normal, furigana, newLine) =
+            val (normalWithoutFurigana, normal, furigana, latin, newLine) =
                     span.destructured
 
             if (furigana.isEmpty()) {
                 if (!newLine.isEmpty()) {
                     spans.add(Span("", "\n", textPaintNormal, textPaintFurigana))
-                } else {
+                } else if (!normalWithoutFurigana.isEmpty()) {
                     for (subSpan in enumerateChars(normalWithoutFurigana)) {
                         spans.add(Span("", subSpan, textPaintNormal, textPaintFurigana))
+                    }
+                } else if (!latin.isEmpty()) {
+                    val subSpans = latin.split(" ")
+
+                    for (i in subSpans.indices) {
+                        spans.add(Span("",
+                                if (i <= subSpans.size - 2) { subSpans[i] + " " } else { subSpans[i] },
+                                textPaintNormal, textPaintFurigana))
                     }
                 }
             } else {
