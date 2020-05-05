@@ -3,5 +3,6 @@
     <declare-styleable name="FuriganaTextView">
         <attr name="contains_ruby_tags" format="boolean"/>
         <attr name="furigana_text_color" format="color"/>
+        <attr name="furigana_text_size" format="dimension"/>
     </declare-styleable>
 </resources>

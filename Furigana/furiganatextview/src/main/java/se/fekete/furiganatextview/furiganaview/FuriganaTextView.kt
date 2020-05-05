@@ -51,6 +51,7 @@ class FuriganaTextView : AppCompatTextView {
     //attributes
     private var hasRuby: Boolean = false
     private var furiganaTextColor: Int = 0
+    private var furiganaTextSize: Float = 0f
 
     // Constructors
     constructor(context: Context) : super(context) {
@@ -62,6 +63,7 @@ class FuriganaTextView : AppCompatTextView {
         try {
             hasRuby = typedArray.getBoolean(R.styleable.FuriganaTextView_contains_ruby_tags, false)
             furiganaTextColor = typedArray.getColor(R.styleable.FuriganaTextView_furigana_text_color, 0)
+            furiganaTextSize = typedArray.getDimension(R.styleable.FuriganaTextView_furigana_text_size, 0f)
         } finally {
             typedArray.recycle()
         }
@@ -115,7 +117,13 @@ class FuriganaTextView : AppCompatTextView {
         // Text
         textPaintNormal = TextPaint(tp)
         textPaintFurigana = TextPaint(tp)
-        textPaintFurigana.textSize = textPaintFurigana.textSize / 2.0f
+
+        textPaintFurigana.textSize =
+                if (furiganaTextSize == 0f) {
+                    textPaintFurigana.textSize / 2.0f
+                } else {
+                    furiganaTextSize
+                }
 
         // Line size
         normalHeight = textPaintNormal.descent() - textPaintNormal.ascent()
